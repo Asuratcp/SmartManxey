@@ -3,35 +3,7 @@ const {
     validateUserSignup,
     validateUserLogin,
 } = require('../validators/user.validator')
-
-// exports.createUser = async (req, res) => {
-//     try {
-//         const { err } = await validateUserSignup(req.body)
-//         if (err) return res.status(400).json({ message: err.message })
-//         const userExist = await User.findOne({ email: req.body.email })
-//         if (userExist) return res.status(400).json({ message: 'user exist' })
-//         const { name, email, password, role } = req.body
-//         const user = await User.create({ name, email, password, role })
-//         if (!user) return res.status(400).json({ message: 'cannot create user' })
-
-
-//         const token = await user.jwtToken()
-
-//         const options = {
-//             expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-//             httpOnly: true,
-//         }
-        
-//         return res.status(200).cookie('token', token, options).json({
-//             message: 'signup successfull',
-//             token,
-//         });
-//     } catch (error) {
-//         console.log('unable to create a user', error.message)
-//         return res.status(500).json({ message: error.message })
-
-//     }
-// }
+const transporter = require('../config/email')
 
 exports.registerUser = async (req,res) => {
     try {
@@ -40,9 +12,8 @@ exports.registerUser = async (req,res) => {
         const userExist = await User.findOne({email:req.body.email})
         if (userExist) return res.status(400).json({message:'user exist'})
         const{name, email, password,role,isVerified} = req.body
-        const user = User.create({name, email, password,role,isVerified})
+        const user = await User.create({name, email, password,role,isVerified})
         if(!user) return res.status(400).json({message:'cannot create user'})
-        
         const token = await user.jwtToken()
 
         const options = {
@@ -50,16 +21,16 @@ exports.registerUser = async (req,res) => {
             httpOnly : true,
         }
 
-        const verificationLink = `http://localhost:${process.env.PORT}/verify-email?token=${token}`
+        const verificationLink = `http://localhost:${process.env.PORT}/api/v1/verify-email?token=${token}`
         
         //Sending In the verification link
 
         await transporter.sendMail({
-            form: process.env.EMAIL_USER,
+            from: process.env.EMAIL_USER,
             to: user.email,
             subject: "verify your Email",
-            html: `<p>Click <a href="${verificationLink}">here</a> to verify your email</p>`
-        })
+            html: `<p>Click <a href="${verificationLink}">here</a> to verify your email</p>`,
+        });
         res.status(201).json({message: "Registration successful. check your email for verfication link"})
     }catch(error){
         res.status(500).json({message : error.message})

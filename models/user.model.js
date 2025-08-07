@@ -28,7 +28,7 @@ const userSchema = new Schema(
     role: {
       type: String,
       enum: {
-        values: ['user', 'author', 'contributor'], // ✅ fixed spelling of "contributor"
+        values: ['user', 'author', 'contributor'], 
         message: 'Please select a valid role',
       },
       default: 'user',
