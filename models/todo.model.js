@@ -1,4 +1,5 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose')
+const bcrypt = require('bcryptjs')
 
 const {model,Schema} = mongoose; 
 
@@ -31,6 +32,11 @@ const todoMainSchema = new Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     categories: [categorySchema]
 }, { timestamps: true });
+
+
+todoMainSchema.methods.compareCategory = async function (category) {
+    return this.categories.some(c => c.name === category)
+}
 
 const TodoList = model("TodoList", todoMainSchema);
 
